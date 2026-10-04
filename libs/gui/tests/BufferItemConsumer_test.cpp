@@ -57,9 +57,6 @@ class BufferItemConsumerTest : public ::testing::Test {
         virtual void onBufferReleased() override {}
         virtual bool needsReleaseNotify() override { return true; }
         virtual void onBuffersDiscarded(const std::vector<int32_t>&) override {}
-        virtual void onBufferDetached(int slot, uint64_t bufferId) override {
-            mTest->HandleBufferDetached(slot, bufferId);
-        }
 
         BufferItemConsumerTest* mTest;
     };
@@ -93,14 +90,6 @@ class BufferItemConsumerTest : public ::testing::Test {
         std::lock_guard<std::mutex> lock(mMutex);
         mFreedBufferCount++;
         ALOGD("HandleBufferFreed, mFreedBufferCount=%d", mFreedBufferCount);
-    }
-
-    void HandleBufferDetached(int slot, uint64_t bufferId) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        mDetachedBufferSlots.push_back(slot);
-        mDetachedBufferIds.push_back(bufferId);
-        ALOGD("HandleBufferDetached, slot=%d bufferId=%" PRIu64 " mDetachedBufferSlots-count=%zu",
-              slot, bufferId, mDetachedBufferSlots.size());
     }
 
     void DequeueBuffer(int* outSlot) {
@@ -157,8 +146,6 @@ class BufferItemConsumerTest : public ::testing::Test {
 
     std::mutex mMutex;
     int mFreedBufferCount{0};
-    std::vector<int> mDetachedBufferSlots = {};
-    std::vector<uint64_t> mDetachedBufferIds = {};
 
     sp<BufferItemConsumer> mBIC;
     sp<BufferFreedListener> mBFL;
@@ -284,8 +271,6 @@ TEST_F(BufferItemConsumerTest, DetachBufferWithBuffer) {
 
     sp<GraphicBuffer> buffer = mBuffers[slot];
     EXPECT_EQ(OK, mBIC->detachBuffer(buffer));
-    EXPECT_THAT(mDetachedBufferSlots, testing::ElementsAre(slot));
-    EXPECT_THAT(mDetachedBufferIds, testing::ElementsAre(buffer->getId()));
 }
 
 TEST_F(BufferItemConsumerTest, UnlimitedSlots_AcquireReleaseAll) {

@@ -49,12 +49,6 @@ public:
     // onBuffersFreed is called from IGraphicBufferConsumer::discardFreeBuffers
     // to notify the producer that certain free buffers are discarded by the consumer.
     virtual void onBuffersDiscarded(const std::vector<int32_t>& slots) = 0; // Asynchronous
-    // onBufferDetached is called from IGraphicBufferConsumer::detachBuffer to
-    // notify the producer that a buffer slot is free and ready to be dequeued.
-    //
-    // This is called without any lock held and can be called concurrently by
-    // multiple threads.
-    virtual void onBufferDetached(int /*slot*/, uint64_t /*bufferId*/) {} // Asynchronous
 
     virtual void onBufferAcquired(uint64_t /*bufferId*/, uint64_t /*frameNumber*/) {}
     virtual bool needsAcquiredNotify() { return false; }
